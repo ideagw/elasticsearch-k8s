@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: es-master-config
+data:
+  elasticsearch.yml: |
+    ---
+    xpack.security.enabled: "true"
+    cluster.name: "kpesdb"
+    node.master: "true"
+    node.data: "false"
+    node.ml: "false"
+    node.ingest: "false"
+    node.name: ${HOSTNAME}
+    node.max_local_storage_nodes: 3
+    processors: ${PROCESSORS}
+    network.host: "_site_"
+    path.data: "/data/data/"
+    path.logs: "/data/log"
+    path.repo: "/data/repo"
+    http.cors.enabled: "true"
+    
+    discovery.zen.ping.unicast.hosts: "elasticsearch-discovery"
+    discovery.zen.minimum_master_nodes: 2
+     
+    xpack.license.self_generated.type: "trial"
+    xpack.security.http.ssl.enabled: "false"
+    xpack.security.transport.ssl.enabled: "false"
+    xpack.security.transport.ssl.verification_mode: none
+

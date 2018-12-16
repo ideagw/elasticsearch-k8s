@@ -1,0 +1,152 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    component: elasticsearch
+    role: data
+spec:
+  selector:
+    component: elasticsearch
+    role: data
+  ports:
+  - name: http2
+    port: 9200
+  externalIPs:
+    - 10.15.197.53
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-data
+  labels:
+    component: elasticsearch
+    role: data
+spec:
+  ports:
+  - port: 9300
+    name: transport2
+  clusterIP: None
+  selector:
+    component: elasticsearch
+    role: data
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: elasticsearch-data
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      component: elasticsearch
+      role: data
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: es-data2
+  labels:
+    component: elasticsearch
+    role: data
+spec:
+  serviceName: elasticsearch-data
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: data
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - {key: role, operator: In, values: ["data"]}
+              topologyKey: "kubernetes.io/hostname"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - {key: es-data, operator: In, values: ["yes"]}
+      initContainers:
+      - name: init-sysctl
+        image: busybox:1.27.2
+        command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        securityContext:
+          privileged: true
+      containers:
+      - name: es-data
+        #image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.0
+        securityContext:
+          privileged: true
+        image: kp-elasticsearch:6.3.0a
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name        
+        - name: ES_JAVA_OPTS
+          value: -Xms10240m -Xmx10240m
+        - name: "ES_PLUGINS_INSTALL"
+          value: "mapper-size"
+        - name: PROCESSORS
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.cpu
+        - name: ES_PATH_CONF
+          value: "/usr/share/elasticsearch/config"
+        resources:
+          requests:
+            cpu: 2
+          limits:
+            cpu: 7
+        ports:
+        - containerPort: 9200
+          name: http2
+        - containerPort: 9300
+          name: transport2
+        livenessProbe:
+          tcpSocket:
+            port: transport2
+          initialDelaySeconds: 40
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: http2
+            #httpHeaders:
+            #  - name: Authorization
+            #    value: "Basic ZWxhc3RpYzprcdsfdfs"
+          initialDelaySeconds: 20
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+      volumes:
+        - name: config
+          configMap:
+            name: es-config   
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      storageClassName: "local-storage"
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 2048Gi
+

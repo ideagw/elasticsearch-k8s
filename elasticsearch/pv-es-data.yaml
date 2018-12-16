@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data2-a
+  labels:
+    type: local
+    component: elasticsearch
+    role: data
+spec:
+  capacity:
+    storage: 2048Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  local:
+    path: /apps/data/es-data2-a
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - csc2cxn00000820
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data2-b
+  labels:
+    type: local
+    component: elasticsearch
+    role: data
+spec:
+  capacity:
+    storage: 2048Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  local:
+    path: /apps/data/es-data2-b
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - csc2cxn00000818
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-data2-c
+  labels:
+    type: local
+    component: elasticsearch
+    role: data
+spec:
+  capacity:
+    storage: 2048Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  local:
+    path: /apps/data/es-data2-c
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - csc2cxn00000819
+

@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: es-config
+data:
+  elasticsearch.yml: |
+    ---
+    xpack.security.enabled: "true"
+    cluster.name: "kpesdb"
+    node.master: "false"
+    node.data: "true"
+    node.ml: "false"
+    node.ingest: "false"
+    node.name: ${HOSTNAME}
+    node.max_local_storage_nodes: 3
+    processors: ${PROCESSORS}
+    network.host: "_site_"
+    path.data: "/data/data/"
+    path.logs: "/data/log"
+    path.repo: "/data/repo"
+    http.cors.enabled: "true"
+    
+    discovery.zen.ping.unicast.hosts: "elasticsearch-discovery"
+    discovery.zen.minimum_master_nodes: 2
+     
+    xpack.license.self_generated.type: "trial"
+    xpack.security.http.ssl.enabled: "false"
+    xpack.security.transport.ssl.enabled: "false"
+    xpack.security.transport.ssl.verification_mode: none
+    xpack.monitoring.collection.enabled: "true"
+ 
+    xpack.notification.email.account.es_account.smtp.auth: "false"
+    xpack.notification.email.account.es_account.smtp.starttls.enable: "false"
+    xpack.notification.email.account.es_account.smtp.starttls.required: "false"
+    xpack.notification.email.account.es_account.smtp.host: "mail.btopenworld.com"
+    xpack.notification.email.account.es_account.smtp.port: "25" 
+

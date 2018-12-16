@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-ingest
+  labels:
+    component: elasticsearch
+    role: ingest
+spec:
+  selector:
+    component: elasticsearch
+    role: ingest
+  ports:
+  - name: http3
+    port: 9200
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: es-ingest
+  labels:
+    component: elasticsearch
+    role: ingest
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: ingest
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - {key: role, operator: In, values: [ingest]}
+              topologyKey: "kubernetes.io/hostname"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - {key: es-master2, operator: In, values: ["yes"]}              
+      #initContainers:
+      #- name: init-sysctl
+      #  image: busybox:1.27.2
+      #  command:
+      #  - sysctl
+      #  - -w
+      #  - vm.max_map_count=262144
+      #  securityContext:
+      #    privileged: true
+      containers:
+      - name: es-ingest        
+        image: kp-elasticsearch:6.3.0a
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name        
+        - name: ES_JAVA_OPTS
+          value: -Xms2048m -Xmx2048m
+        - name: ES_PATH_CONF
+          value: "/usr/share/elasticsearch/config"
+        - name: PROCESSORS
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.cpu
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+        ports:
+        - containerPort: 9200
+          name: http3
+        - containerPort: 9300
+          name: transport3
+        livenessProbe:
+          tcpSocket:
+            port: transport3
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        #readinessProbe:
+        #  httpGet:
+        #    path: /_cluster/health
+        #    port: http3            
+       #   initialDelaySeconds: 20
+       #   timeoutSeconds: 5
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+      volumes:
+          - emptyDir:
+              medium: ""
+            name: storage
+          - name: config
+            configMap:
+              name: es-ingest-config
