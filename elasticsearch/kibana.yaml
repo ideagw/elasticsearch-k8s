@@ -12,8 +12,8 @@ spec:
   - name: http
     port: 443
     targetPort: http
-  externalIPs:
-  - 10.15.197.52
+  #externalIPs:
+  #- 10.x.x.x
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -36,7 +36,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - {key: es-kibana, operator: In, values: ["yes"]}
+              - {key: es-kibana, operator: In, values: ["true"]}
       containers:
       - name: kibana
         image: kp-kibana:6.3.2

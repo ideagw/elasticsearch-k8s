@@ -53,7 +53,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - {key: es-master2, operator: In, values: ["yes"]}
+              - {key: es-master, operator: In, values: ["true"]}
       initContainers:
       - name: init-sysctl
         image: busybox:1.27.2

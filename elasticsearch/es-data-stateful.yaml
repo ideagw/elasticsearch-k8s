@@ -13,8 +13,8 @@ spec:
   ports:
   - name: http2
     port: 9200
-  externalIPs:
-    - 10.15.197.53
+  #externalIPs:
+   
 ---
 apiVersion: v1
 kind: Service
@@ -71,7 +71,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - {key: es-data, operator: In, values: ["yes"]}
+              - {key: es-data, operator: In, values: ["true"]}
       initContainers:
       - name: init-sysctl
         image: busybox:1.27.2
