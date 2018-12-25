@@ -38,11 +38,22 @@ Now, we want to create PersistentVOlumes for data nodes. Given I have only local
 
 Now you can deploy data stateful set, master deployment and ingest nodes.
 
+>kubectl -n es apply -f es-master-config.yaml
 >kubectl -n es apply -f es-master.yaml
 
+>kubectl -n es apply -f es-config-.yaml
 >kubectl -n es apply -f es-data-statefulset.yaml
 
+>kubectl -n es apply -f es-ingest-config.yaml
 >kubectl -n es apply -f es-ingest.yaml
+
+>kubectl -n es apply -f es-ml-config.yaml
+>kubectl -n es apply -f es-ml.yaml
+
+>kubectl -n es apply -f kibana-cm.yaml
+>kubectl -n es apply -f kibana.yaml
+
+Optionaly, you can deploy curator config and curator cron job also, which is used to delete indices which are older than certain age based on date in name pattern.
 
 Verify all the pods are up and running:
 
