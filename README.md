@@ -30,6 +30,8 @@ Let's label the nodes to specific roles. The roles we want are:
 
 >kubectl label node r-node-6 r-node-7 es-ingest=true
 
+>kubectl label node r-node-5 es-kibana=true
+
 >kubectl get nodes --show-labels
 
 Now, we want to create PersistentVOlumes for data nodes. Given I have only local storage, in the given example we are using local-storage storage class. We are creating 3 PVs, one for each data node, and each volume is going to be tied to specific worker node only, using the nodeAffinity and nodeSelectorTerms. See pv-es-data.yaml.
