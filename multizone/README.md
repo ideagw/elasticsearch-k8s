@@ -1,2 +1,5 @@
 
-Multizone ElasticSearch Deployment on Kubernetes Cluster
+# Three Zone Highly Available ElasticSearch Deployment on Kubernetes Cluster
+
+
+## Steps:
