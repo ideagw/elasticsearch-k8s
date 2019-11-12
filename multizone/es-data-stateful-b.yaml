@@ -1,0 +1,107 @@
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: es-data-b
+  labels:
+    component: elasticsearch
+    role: data
+spec:
+  serviceName: elasticsearch-data
+  replicas: 2
+  #podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        component: elasticsearch
+        role: data
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - {key: role, operator: In, values: ["data"]}
+              topologyKey: "kubernetes.io/hostname"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - {key: es-data, operator: In, values: ["yes"]}
+              - {key: zone, operator: In, values: ["b"]}
+      initContainers:
+      - name: init-sysctl
+        image: busybox:1.27.2
+        command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        securityContext:
+          privileged: true
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: es-data-b
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
+        securityContext:
+          privileged: true
+        env:
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: node.attr.zone
+          value: b
+        - name: ES_JAVA_OPTS
+          value: -Xms4096m -Xmx4096m
+        - name: PROCESSORS
+          valueFrom:
+            resourceFieldRef:
+              resource: limits.cpu
+        - name: ES_PATH_CONF
+          value: "/usr/share/elasticsearch/config"
+        - name: node.data
+          value: "true"
+        resources:
+          requests:
+            cpu: 2
+          limits:
+            cpu: 4
+        ports:
+        - containerPort: 9200
+          name: http2
+        - containerPort: 9300
+          name: transport2
+        livenessProbe:
+          tcpSocket:
+            port: transport2
+          initialDelaySeconds: 85
+          periodSeconds: 15
+        #readinessProbe:
+        #  httpGet:
+        #    path: /_cluster/health
+        #    port: http2
+            #httpHeaders:
+            #  - name: Authorization
+        #  initialDelaySeconds: 60
+        #  timeoutSeconds: 10
+        volumeMounts:
+        - name: storage
+          mountPath: /data
+        - name: config
+          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+          subPath: elasticsearch.yml
+      volumes:
+        - name: config
+          configMap:
+            name: es-config
+  volumeClaimTemplates:
+  - metadata:
+      name: storage
+    spec:
+      storageClassName: "local-path"
+      accessModes: [ ReadWriteOnce ]
+      resources:
+        requests:
+          storage: 20Gi

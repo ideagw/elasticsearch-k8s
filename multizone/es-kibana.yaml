@@ -1,0 +1,59 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  labels:
+    component: kibana
+spec:
+  selector:
+    component: kibana
+  ports:
+  - name: http
+    port: 9192
+    targetPort: http
+  externalIPs:
+  - 9.1.35.1
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: kibana
+  labels:
+    component: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+     component: kibana
+  template:
+    metadata:
+      labels:
+        component: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:7.3.2
+        env:
+       # resources:
+       #   limits:
+       #     cpu: 7
+       #   requests:
+       #     cpu: 1
+        ports:
+        - containerPort: 5601
+          name: http
+        volumeMounts:
+          - name: config
+            mountPath: /usr/share/kibana/config
+            readOnly: true
+         # - name: secret-vol
+         #   mountPath: /usr/share/kibana/tls
+         #   readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: kibana-config
+        #- name: secret-vol
+        #  secret:
+        #    secretName: tlskp-secret

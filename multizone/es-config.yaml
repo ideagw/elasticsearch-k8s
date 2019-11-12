@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: es-config
+data:
+  elasticsearch.yml: |
+    ---
+    xpack.security.enabled: "false"
+    cluster.name: "sandbox-es"
+    node.master: "false"
+    node.data: "false"
+    node.ml: "false"
+    node.ingest: "false"
+    node.name: ${HOSTNAME}
+    node.max_local_storage_nodes: 3
+    #processors: ${PROCESSORS}
+    network.host: "_site_"
+    path.data: "/data/data/"
+    path.logs: "/data/log"
+    path.repo: "data/repo"
+    http.cors.enabled: "true"
+
+    discovery.seed_hosts: ed-a:9300,ed-b:9300,ed-c:9300
+    cluster.initial_master_nodes: ed-a,ed-b,ed-c
+
+    xpack.license.self_generated.type: "trial"
+    xpack.security.http.ssl.enabled: "false"
+    xpack.monitoring.collection.enabled: "true"
+
+    xpack.security.transport.ssl.enabled: false
