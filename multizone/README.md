@@ -8,7 +8,7 @@
 
 1. Install and optionally customize the local-path storage class as we are using local SSDs for storage and we don't want to manually create PVs.
 
-2. Label nodes to indicate which zone they are present in.
+2. Label nodes to indicate which zone they are present in. We have three zones {a, b, c} and nine nodes (named r1, r2, r3, d1, d2, d3, r4, r5, r6)  with 3 nodes in each zone.
 
 ``` 
 kubectl label node r1 r2 r3 zone=a
@@ -40,5 +40,5 @@ kubectl -n es apply -f .
 ```
 kubectl -n es get pods -o wide
 ```
-9. Create index with 3 shards and one replica, check to ensure that the for each shard, its primary and replica are in separate zones.
+9. Create index with 3 shards and one replica, check to ensure that for each shard, its primary and replica are in separate zones.
 
