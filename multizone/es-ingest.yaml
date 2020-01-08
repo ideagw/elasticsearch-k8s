@@ -52,44 +52,16 @@ spec:
           privileged: true
       containers:
       - name: es-ingest
-        #image: trow.kube-public:31000/kp/kp-elasticsearch:7.3.0
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
-        #lifecycle:
-        #  postStart:
-        #    exec:
-        #      command: ["/bin/sh", "-c", "/usr/share/elasticsearch/bin/elasticsearch-certutil cert --ca-cert /tmp/tls/tls.crt --ca-key /tmp/tls/tls.key --ca-pass \"\" --pass \"\" --out /tmp/es-certs.p12 && chown 1000:1000 /tmp/es-certs.p12"]
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
         env:
-        #- name: NAMESPACE
-        #  valueFrom:
-        #    fieldRef:
-        #      fieldPath: metadata.namespace
-        #- name: node.name
-          #value: 
-          #valueFrom:
-          #  fieldRef:
-          #    fieldPath: metadata.name
-        #- name: CLUSTER_NAME
-        #  value: kp-sandbox-es
-        #- name: NODE_MASTER
-        #  value: "false"
-        #- name: NODE_DATA
-        #  value: "false"
         - name: node.ingest
           value: "true"
         - name: HTTP_ENABLE
           value: "true"
         - name: ES_JAVA_OPTS
           value: -Xms2048m -Xmx2048m
-        #- name: "ES_PLUGINS_INSTALL"
-        #  value: "mapper-size"
-        #- name: NETWORK_HOST
-        #  value: _eth0:ipv4_,_lo_
         - name: ES_PATH_CONF
           value: "/usr/share/elasticsearch/config"
-        #- name: PROCESSORS
-        #  valueFrom:
-        #    resourceFieldRef:
-        #      resource: limits.cpu
        # resources:
        #   requests:
        #    cpu: 1
@@ -111,7 +83,7 @@ spec:
         #    port: http3
             #httpHeaders:
             #  - name: Authorization
-            #    value: "Basic ZWxhc3RpYzprcCNwYXNz"
+            #    value: "Basic "
        #   initialDelaySeconds: 20
        #   timeoutSeconds: 5
         volumeMounts:
@@ -120,8 +92,6 @@ spec:
         - name: config
           mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
           subPath: elasticsearch.yml
-        #- name: secret-volume
-        #  mountPath: /tmp/tls
       volumes:
           - emptyDir:
               medium: ""
@@ -129,6 +99,3 @@ spec:
           - name: config
             configMap:
               name: es-config
-          #- name: secret-volume
-          #  secret:
-          #    secretName: tls-secret

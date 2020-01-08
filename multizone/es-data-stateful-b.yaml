@@ -43,7 +43,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: es-data-b
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
         securityContext:
           privileged: true
         env:

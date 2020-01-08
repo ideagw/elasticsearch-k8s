@@ -45,7 +45,7 @@ spec:
       - name: es-data-c
         securityContext:
           privileged: true
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
         env:
         - name: NODE_NAME
           valueFrom:

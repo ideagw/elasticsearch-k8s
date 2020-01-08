@@ -5,7 +5,7 @@ metadata:
 data:
   kibana.yml: |
     ---
-    xpack.security.enabled: "false"
+    #xpack.security.enabled: "false"
     server.name: kibana
     server.host: '0'
     elasticsearch.hosts: http://elasticsearch:9200
