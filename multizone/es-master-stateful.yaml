@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ed-a
+  name: ed
   labels:
     component: elasticsearch
     role: master
 spec:
   selector:
     component: elasticsearch
-    role: master-a
+    role: master
   ports:
   - name: transport1
     port: 9300
@@ -18,7 +18,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: es-master-a
+  name: es-master
   labels:
     component: elasticsearch
     role: master
@@ -26,14 +26,14 @@ spec:
   selector:
     matchLabels:
       component: elasticsearch
-      role: master-a
-  serviceName: ed-a
-  replicas: 1
+      role: master
+  serviceName: ed
+  replicas: 3
   template:
     metadata:
       labels:
         component: elasticsearch
-        role: master-a
+        role: master
     spec:
       affinity:
         podAntiAffinity:
@@ -48,7 +48,7 @@ spec:
             nodeSelectorTerms:
             - matchExpressions:
               - {key: es-master, operator: In, values: ["yes"]}
-              - {key: zone, operator: In, values: ["a"]}
+              #- {key: zone, operator: In, values: ["a"]}
       initContainers:
       - name: init-sysctl
         image: busybox:1.27.2
@@ -59,20 +59,20 @@ spec:
         securityContext:
           privileged: true
       containers:
-      - name: es-master-a
+      - name: es-master
         image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
         securityContext:
           privileged: true
         env:
-        - name: node.name
-          value: "ed-a"
+        #- name: node.name
+        #  value: "ed-a"
         - name: node.master
           value: "true"
         - name: ES_PATH_CONF
           value: "/usr/share/elasticsearch/config"
         resources:
           requests:
-            cpu: 0.5
+            cpu: 0.25
           limits:
             cpu: 2
         ports:
@@ -92,7 +92,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: es-config
+            name: es-master-config
   volumeClaimTemplates:
   - metadata:
       name: storage
