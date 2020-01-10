@@ -42,6 +42,7 @@ kubectl -n es get pods -o wide
 ```
 9. Create index with 3 shards and one replica, check to ensure that for each shard, its primary and replica are in separate zones.
    Let's create an index named `twitter` with three shards and one replica each
+
 ```   
         curl -X PUT "http://10.102.46.55:9200/twitter?pretty" -H 'Content-Type: application/json' -d'
         {
