@@ -23,6 +23,8 @@ data:
     discovery.seed_hosts: ed
     cluster.initial_master_nodes: es-master-0,es-master-1,es-master-2
 
+    cluster.routing.allocation.awareness.attributes: zone
+
     xpack.license.self_generated.type: "trial"
     xpack.security.http.ssl.enabled: "false"
     xpack.monitoring.collection.enabled: "true"
