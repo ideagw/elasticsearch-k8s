@@ -41,4 +41,89 @@ kubectl -n es apply -f .
 kubectl -n es get pods -o wide
 ```
 9. Create index with 3 shards and one replica, check to ensure that for each shard, its primary and replica are in separate zones.
+   Let's create an index named `twitter` with three shards and one replica each
+   
+        curl -X PUT "http://10.102.46.55:9200/twitter?pretty" -H 'Content-Type: application/json' -d'
+        {
+            "settings" : {
+            "index" : {
+                "number_of_shards" : 3, 
+                 "number_of_replicas" : 1 
+                }
+            }
+        }
+        '
+    Result
+
+        {
+        "acknowledged" : true,
+            "shards_acknowledged" : true,
+            "index" : "twitter"
+        }
+
+10. Verify that for each shard, the primary and replica allocation is in different zones
+
+        curl http://10.102.46.55:9200/_cat/shards/twitter?pretty=true
+
+        twitter 2 p STARTED 0 230b 10.244.7.242 es-data-b-1
+        twitter 2 r STARTED 0 230b 10.244.4.197 es-data-c-0
+        twitter 1 p STARTED 0 230b 10.244.1.36  es-data-a-0
+        twitter 1 r STARTED 0 230b 10.244.5.212 es-data-c-1
+        twitter 0 p STARTED 0 230b 10.244.2.44  es-data-a-1
+        twitter 0 r STARTED 0 230b 10.244.6.161 es-data-b-0  
+
+11. Insert some data and search:
+
+       POST twitter/_doc/
+       {
+        "user" : "elasticuser",
+        "post_date" : "2019-11-15T14:12:12",
+        "message" : "trying out Elasticsearch"
+       }
+
+       {
+	  "_index" : "twitter",
+	  "_type" : "_doc",
+	  "_id" : "352akW8B4tm0-AjGic8M",
+	  "_version" : 1,
+	  "result" : "created",
+	  "_shards" : {
+	    "total" : 2,
+	    "successful" : 2,
+	    "failed" : 0
+	  },
+	  "_seq_no" : 0,
+	  "_primary_term" : 1
+	}
+
+12. Bring down pods in zone c
+
+      kubectl -n es scale sts es-master --replicas=2
+      kubectl -n es scale sts es-data-c --replicas=0
+
+13. See shards
+	curl http://10.102.46.55:9200/_cat/shards/twitter?pretty=true
+	twitter 1 p STARTED    0 283b 10.244.1.36  es-data-a-0
+	twitter 1 r UNASSIGNED                     
+	twitter 2 p STARTED    0 283b 10.244.7.242 es-data-b-1
+	twitter 2 r UNASSIGNED                     
+	twitter 0 p STARTED    0 283b 10.244.2.44  es-data-a-1
+	twitter 0 r STARTED    0 283b 10.244.6.161 es-data-b-0
+
+As you can see, shards 1(replica) and 2(replica) become unassigned. However if there is any data in these, that will still be available when you do search. Similiraly, data can still be inserted in the cluster.
+
+14. Search
+	
+	curl http://10.102.46.55:9200/twitter/_search?q=user:elastic*
+
+        Result:
+	{
+	    "user" : "elasticuser",
+	    "post_date" : "2019-11-15T14:12:12",
+	    "message" : "trying out Elasticsearch"
+	}
+
+
+
+
 
